@@ -50,15 +50,15 @@ export default class Target {
     if (active) {
       this._routes[active.path]
         .parameters(active.parameters, true)
-        .goto(false);
+        .go(false);
     } else if (this._default) {
-      this._default.goto();
+      this._default.go();
     } else {
       this.destroy();
     }
   }
 
-  goto(route, push) {
+  go(route, push) {
     if (route === this._current) {
       return;
     }
@@ -77,21 +77,21 @@ export default class Target {
       element = route.element(true);
 
       if (direction === 'immediate') {
-        this._element.clearSlides();
+        this._element.slider().clearSlides();
         direction = 'forward';
       }
 
       if (direction === 'forward') {
-        this._element.append(element);
+        this._element.slider().append(element);
       } else {
-        this._element.prepend(element);
+        this._element.slider().prepend(element);
       }
     }
 
     if (direction === 'forward') {
-      this._element.forward();
+      this._element.slider().forward();
     } else {
-      this._element.backward();
+      this._element.slider().backward();
     }
 
     if (push !== false) {

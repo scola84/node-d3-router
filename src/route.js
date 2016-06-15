@@ -31,12 +31,13 @@ export default class Route {
   }
 
   parameters(parameters, raw) {
-    this._parameters = raw ? parseQuery(parameters) : parameters;
+    this._parameters = raw && parameters ?
+      parseQuery(parameters) : parameters;
     return this;
   }
 
-  goto(push) {
-    this._target.goto(this, push);
+  go(push) {
+    this._target.go(this, push);
     return this;
   }
 
