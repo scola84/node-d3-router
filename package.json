@@ -7,6 +7,9 @@
   "license": "MIT",
   "main": "./dist/d3-router.js",
   "jsnext:main": "index.js",
+  "dependencies": {
+    "async-series": "0.0.1"
+  },
   "devDependencies": {
     "babel-preset-es2015-rollup": "^1.1.1",
     "rollup": "^0.26.3",
@@ -18,8 +21,5 @@
   "scripts": {
     "build": "rollup -c -n d3_router -o dist/d3-router.js",
     "build:min": "uglifyjs dist/d3-router.js -c -m -o dist/d3-router.min.js"
-  },
-  "dependencies": {
-    "async-series": "0.0.1"
   }
 }

@@ -11,13 +11,16 @@ export default class Target {
     this._current = null;
   }
 
-  destroy() {
+  destroy(element) {
     Object.keys(this._routes).forEach((key) => {
       this._routes[key].destroy();
     });
 
     if (this._element) {
-      this._element.destroy();
+      if (element) {
+        this._element.destroy();
+      }
+
       this._element = null;
     }
 
@@ -77,7 +80,7 @@ export default class Target {
       element = route.element(true);
 
       if (direction === 'immediate') {
-        this._element.slider().clearSlides();
+        this._element.slider().clear();
         direction = 'forward';
       }
 
