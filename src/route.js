@@ -1,4 +1,6 @@
-import { formatQuery, parseQuery } from '@scola/http';
+/* eslint prefer-reflect: "off" */
+
+import { dispatch } from 'd3-dispatch';
 
 export default class Route {
   constructor(target, path, creator) {
@@ -6,23 +8,25 @@ export default class Route {
     this._path = path;
     this._creator = creator;
 
-    this._parameters = null;
+    this._dispatch = dispatch('go', 'destroy');
+    this._parameters = {};
     this._element = null;
   }
 
-  destroy() {
+  destroy(element) {
     if (this._element) {
-      this._element.destroy();
+      if (element !== false) {
+        this._element.destroy();
+      }
+
       this._element = null;
     }
+
+    this._dispatch.call('destroy');
   }
 
-  path() {
-    return this._path;
-  }
-
-  default () {
-    this._target.default(this);
+  on(typenames, callback) {
+    this._dispatch.on(typenames, callback);
     return this;
   }
 
@@ -30,28 +34,76 @@ export default class Route {
     return this._target.route(...args);
   }
 
-  parameters(parameters, raw) {
-    this._parameters = raw && parameters ?
-      parseQuery(parameters) : parameters;
+  default () {
+    this._target.default(this);
     return this;
   }
 
-  go(push) {
-    this._target.go(this, push);
-    return this;
+  target() {
+    return this._target;
   }
 
-  element(create) {
-    if (!this._element && create) {
-      this._element = this._creator(this._parameters);
+  path() {
+    return this._path;
+  }
+
+  element() {
+    if (!this._element) {
+      this._element = this._creator(this);
+      this._element.root().on('destroy', () => this.destroy(false));
     }
 
     return this._element;
   }
 
-  stringify() {
-    return this._path + (this._parameters ?
-      ':' + formatQuery(this._parameters) : '');
+  parameters(parameters) {
+    if (typeof parameters === 'undefined') {
+      return this._parameters;
+    }
+
+    this._parameters = typeof parameters === 'string' ?
+      this._parse(parameters) : parameters;
+
+    return this;
   }
 
+  go(push) {
+    this._dispatch.call('go');
+    this._target.go(this, push);
+
+    return this;
+  }
+
+  stringify() {
+    let string = this._path;
+
+    if (Object.keys(this._parameters).length > 0) {
+      string += ':' + this._format(this._parameters);
+    }
+
+    return string;
+  }
+
+  _parse(string) {
+    const parameters = {};
+    const parts = string ? string.split('&') : [];
+
+    parts.forEach((part) => {
+      const [key, value] = part.split('=');
+      parameters[decodeURIComponent(key)] = decodeURIComponent(value);
+    });
+
+    return parameters;
+  }
+
+  _format(parameters) {
+    const parts = [];
+
+    Object.keys(parameters).forEach((key) => {
+      parts.push(encodeURIComponent(key) + '=' +
+        encodeURIComponent(parameters[key]));
+    });
+
+    return parts.join('&');
+  }
 }

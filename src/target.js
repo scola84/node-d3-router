@@ -17,7 +17,7 @@ export default class Target {
     });
 
     if (this._element) {
-      if (element) {
+      if (element !== false) {
         this._element.destroy();
       }
 
@@ -26,6 +26,14 @@ export default class Target {
 
     this._current = null;
     this._router.pushState();
+  }
+
+  router() {
+    return this._router;
+  }
+
+  name() {
+    return this._name;
   }
 
   current() {
@@ -52,7 +60,7 @@ export default class Target {
   popState(active) {
     if (active) {
       this._routes[active.path]
-        .parameters(active.parameters, true)
+        .parameters(active.parameters)
         .go(false);
     } else if (this._default) {
       this._default.go();
@@ -74,27 +82,17 @@ export default class Target {
     this._current = route;
 
     let direction = this._direction(current, this._current);
-    let element = route.element();
+    const element = route.element();
 
-    if (!element) {
-      element = route.element(true);
-
-      if (direction === 'immediate') {
-        this._element.slider().clear();
-        direction = 'forward';
-      }
-
-      if (direction === 'forward') {
-        this._element.slider().append(element);
-      } else {
-        this._element.slider().prepend(element);
-      }
+    if (direction === 'immediate') {
+      this._element.slider().clear();
+      direction = 'forward';
     }
 
     if (direction === 'forward') {
-      this._element.slider().forward();
+      this._element.slider().append(element).forward();
     } else {
-      this._element.slider().backward();
+      this._element.slider().prepend(element).backward();
     }
 
     if (push !== false) {

@@ -32,7 +32,7 @@ export default class Router {
       }
 
       const [route, target] = state.split('@');
-      const [path, parameters] = route.split(':');
+      const [path, parameters = ''] = route.split(':');
 
       active[target] = {
         path,

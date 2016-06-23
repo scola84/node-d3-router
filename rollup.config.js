@@ -5,7 +5,7 @@ export default {
   format: 'umd',
   globals: {
     'd3-selection': 'd3_selection',
-    '@scola/http': 'http'
+    'd3-dispatch': 'd3_dispatch'
   },
   plugins: [
     babel({
