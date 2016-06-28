@@ -4,8 +4,8 @@ export default {
   entry: 'index.js',
   format: 'umd',
   globals: {
-    'd3-selection': 'd3_selection',
-    'd3-dispatch': 'd3_dispatch'
+    'd3-selection': 'd3',
+    'd3-dispatch': 'd3'
   },
   plugins: [
     babel({
