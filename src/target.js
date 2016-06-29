@@ -12,9 +12,8 @@ export default class Target {
   }
 
   destroy(element) {
-    Object.keys(this._routes).forEach((key) => {
-      this._routes[key].destroy();
-    });
+    Object.keys(this._routes).forEach((key) => this._routes[key].destroy());
+    this._routes = {};
 
     if (this._element) {
       if (element !== false) {
