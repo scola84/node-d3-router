@@ -4,11 +4,11 @@ import Target from './target';
 export default class Router {
   constructor() {
     this._targets = {};
-    select(window).on('popstate.scola-router', this.popState.bind(this));
+    this._bind();
   }
 
   destroy() {
-    select(window).on('popstate.scola-router', null);
+    this._unbind();
 
     Object.keys(this._targets).forEach((key) => {
       this._targets[key].destroy();
@@ -53,6 +53,14 @@ export default class Router {
     if (state !== window.location.hash.substr(1)) {
       window.history.pushState(state, null, '#' + state);
     }
+  }
+
+  _bind() {
+    select(window).on('popstate.scola-router', this.popState.bind(this));
+  }
+
+  _unbind() {
+    select(window).on('popstate.scola-router', null);
   }
 
   _stringify() {
