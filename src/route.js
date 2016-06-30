@@ -49,7 +49,7 @@ export default class Route {
 
   element() {
     if (!this._element) {
-      this._element = this._creator(this);
+      this._element = this._creator(this, this._target.router());
       this._element.root().on('destroy', () => this.destroy(false));
     }
 

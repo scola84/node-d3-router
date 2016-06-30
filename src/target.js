@@ -35,6 +35,10 @@ export default class Target {
     return this._name;
   }
 
+  element() {
+    return this._element;
+  }
+
   current() {
     return this._current;
   }
