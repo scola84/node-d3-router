@@ -63,7 +63,7 @@ export default class Target {
   popState(active) {
     if (active) {
       this._routes[active.path]
-        .parameters(active.parameters)
+        .parameters(active.parameters, true)
         .go(false);
     } else if (this._default) {
       this._default.go();
@@ -72,11 +72,7 @@ export default class Target {
     }
   }
 
-  go(route, push) {
-    if (route === this._current) {
-      return;
-    }
-
+  go(route, change) {
     if (!this._element) {
       this._element = this._creator();
     }
@@ -84,35 +80,37 @@ export default class Target {
     const current = this._current;
     this._current = route;
 
-    let direction = this._direction(current, this._current);
+    let action = this._action(current, this._current);
     const element = route.element();
 
-    if (direction === 'immediate') {
+    if (action === 'clear') {
       this._element.slider().clear();
-      direction = 'forward';
+      action = 'forward';
     }
 
-    if (direction === 'forward') {
+    if (action === 'forward') {
       this._element.slider().append(element).forward();
-    } else {
+    } else if (action === 'backward') {
       this._element.slider().prepend(element).backward();
     }
 
-    if (push !== false) {
-      this._router.pushState();
-    }
+    this._router.changeState(change);
   }
 
   stringify() {
     return this._current.stringify() + '@' + this._name;
   }
 
-  _direction(current, next) {
+  _action(current, next) {
+    if (current && next && current.path() === next.path()) {
+      return 'stay';
+    }
+
     current = current && current.path().split('.');
     next = next && next.path().split('.');
 
     if (!current || Math.abs(current.length - next.length) > 1) {
-      return 'immediate';
+      return 'clear';
     }
 
     if (this._contains(next, current)) {
@@ -121,7 +119,7 @@ export default class Target {
       return 'backward';
     }
 
-    return 'immediate';
+    return 'clear';
   }
 
   _contains(outer, inner) {

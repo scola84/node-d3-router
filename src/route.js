@@ -1,14 +1,13 @@
-/* eslint prefer-reflect: "off" */
+import EventEmitter from 'events';
 
-import { dispatch } from 'd3-dispatch';
-
-export default class Route {
+export default class Route extends EventEmitter {
   constructor(target, path, creator) {
+    super();
+
     this._target = target;
     this._path = path;
     this._creator = creator;
 
-    this._dispatch = dispatch('go', 'destroy');
     this._parameters = {};
     this._element = null;
   }
@@ -22,12 +21,7 @@ export default class Route {
       this._element = null;
     }
 
-    this._dispatch.call('destroy');
-  }
-
-  on(typenames, callback) {
-    this._dispatch.on(typenames, callback);
-    return this;
+    this.emit('destroy');
   }
 
   route(...args) {
@@ -56,20 +50,44 @@ export default class Route {
     return this._element;
   }
 
-  parameters(parameters) {
-    if (typeof parameters === 'undefined') {
-      return this._parameters;
+  parameter(name, value, emit = false) {
+    if (typeof value === 'undefined') {
+      return this._parameters[name];
     }
 
-    this._parameters = typeof parameters === 'string' ?
-      this._parse(parameters) : parameters;
+    if (value === null) {
+      delete this._parameters[name];
+    } else {
+      this._parameters[name] = value;
+    }
+
+    if (emit === true) {
+      this.emit('parameters', this._parameters);
+    }
 
     return this;
   }
 
-  go(push) {
-    this._dispatch.call('go');
-    this._target.go(this, push);
+  parameters(parameters, emit = false) {
+    if (typeof parameters === 'undefined') {
+      return this._parameters;
+    }
+
+    parameters = typeof parameters === 'string' ?
+      this._parse(parameters) : parameters;
+
+    Object.assign(this._parameters, parameters);
+
+    if (emit === true) {
+      this.emit('parameters', this._parameters);
+    }
+
+    return this;
+  }
+
+  go(change) {
+    this.emit('go');
+    this._target.go(this, change);
 
     return this;
   }

@@ -42,14 +42,18 @@ export default class Router {
       this._targets[name].popState(active[name]);
     });
 
-    this.pushState();
+    this.changeState();
   }
 
-  pushState() {
+  changeState(change = 'push') {
     const state = this._stringify();
 
     if (state !== window.location.hash.substr(1)) {
-      window.history.pushState(state, null, '#' + state);
+      if (change === 'push') {
+        window.history.pushState(state, null, '#' + state);
+      } else if (change === 'replace') {
+        window.history.replaceState(state, null, '#' + state);
+      }
     }
   }
 
