@@ -45,6 +45,7 @@ export default class Route extends EventEmitter {
     if (!this._element) {
       this._element = this._creator(this, this._target.router());
       this._element.root().on('destroy', () => this.destroy(false));
+      this.emit('parameters', this._parameters, 'element');
     }
 
     return this._element;
@@ -62,7 +63,7 @@ export default class Route extends EventEmitter {
     }
 
     if (emit === true) {
-      this.emit('parameters', this._parameters);
+      this.emit('parameters', this._parameters, 'parameter');
     }
 
     return this;
@@ -79,7 +80,7 @@ export default class Route extends EventEmitter {
     Object.assign(this._parameters, parameters);
 
     if (emit === true) {
-      this.emit('parameters', this._parameters);
+      this.emit('parameters', this._parameters, 'parameters');
     }
 
     return this;
