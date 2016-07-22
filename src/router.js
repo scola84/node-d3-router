@@ -58,7 +58,7 @@ export default class Router {
   }
 
   _bind() {
-    select(window).on('popstate.scola-router', this.popState.bind(this));
+    select(window).on('popstate.scola-router', () => this.popState());
   }
 
   _unbind() {
