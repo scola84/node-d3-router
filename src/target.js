@@ -12,7 +12,8 @@ export default class Target {
   }
 
   destroy(element) {
-    Object.keys(this._routes).forEach((key) => this._routes[key].destroy());
+    Object.keys(this._routes)
+      .forEach((key) => this._routes[key].destroy());
     this._routes = {};
 
     if (this._element) {
@@ -64,7 +65,7 @@ export default class Target {
     if (active) {
       this._routes[active.path]
         .parameters(active.parameters, true)
-        .go(false);
+        .go();
     } else if (this._default) {
       this._default.go();
     } else {

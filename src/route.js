@@ -51,7 +51,7 @@ export default class Route extends EventEmitter {
     return this._element;
   }
 
-  parameter(name, value, emit = false) {
+  parameter(name, value, emit) {
     if (typeof value === 'undefined') {
       return this._parameters[name];
     }
@@ -69,7 +69,7 @@ export default class Route extends EventEmitter {
     return this;
   }
 
-  parameters(parameters, emit = false) {
+  parameters(parameters, emit) {
     if (typeof parameters === 'undefined') {
       return this._parameters;
     }

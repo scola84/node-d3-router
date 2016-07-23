@@ -45,7 +45,7 @@ export default class Router {
     this.changeState();
   }
 
-  changeState(change = 'push') {
+  changeState(change) {
     const state = this._stringify();
 
     if (state !== window.location.hash.substr(1)) {
