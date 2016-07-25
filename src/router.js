@@ -41,8 +41,6 @@ export default class Router {
     Object.keys(this._targets).forEach((name) => {
       this._targets[name].popState(active[name]);
     });
-
-    this.changeState();
   }
 
   changeState(change) {

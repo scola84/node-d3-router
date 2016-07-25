@@ -13,8 +13,7 @@ export default class Target {
 
   destroy(element) {
     Object.keys(this._routes)
-      .forEach((key) => this._routes[key].destroy());
-    this._routes = {};
+      .forEach((key) => this._routes[key].destroy(false));
 
     if (this._element) {
       if (element !== false) {
@@ -25,7 +24,7 @@ export default class Target {
     }
 
     this._current = null;
-    this._router.pushState();
+    this._router.changeState('push');
   }
 
   router() {
@@ -75,7 +74,7 @@ export default class Target {
 
   go(route, change) {
     if (!this._element) {
-      this._element = this._creator();
+      this._element = this._creator(this);
     }
 
     const current = this._current;
