@@ -62,14 +62,18 @@ export default class Target {
 
   popState(active) {
     if (active) {
-      this._routes[active.path]
-        .parameters(active.parameters, true)
-        .go();
+      if (this._routes[active.path]) {
+        this._routes[active.path]
+          .parameters(active.parameters, true)
+          .go();
+        return;
+      }
     } else if (this._default) {
       this._default.go();
-    } else {
-      this.destroy();
+      return;
     }
+
+    this.destroy();
   }
 
   go(route, change) {
