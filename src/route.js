@@ -1,4 +1,4 @@
-import EventEmitter from 'events';
+import { EventEmitter } from '@scola/events';
 
 export default class Route extends EventEmitter {
   constructor(target, path, creator) {
@@ -44,8 +44,12 @@ export default class Route extends EventEmitter {
   element() {
     if (!this._element) {
       this._element = this._creator(this, this._target.router());
-      this._element.root().on('destroy', () => this.destroy(false));
-      this.emit('parameters', this._parameters, 'element');
+
+      this._element
+        .root()
+        .on('destroy', () => this.destroy(false));
+
+      this.emit('parameters', this._parameters);
     }
 
     return this._element;
@@ -63,33 +67,31 @@ export default class Route extends EventEmitter {
     }
 
     if (emit === true) {
-      this.emit('parameters', this._parameters, 'parameter');
+      this.emit('parameters', this._parameters);
     }
 
     return this;
   }
 
-  parameters(parameters, emit) {
-    if (typeof parameters === 'undefined') {
+  parameters(value, emit) {
+    if (typeof value === 'undefined') {
       return this._parameters;
     }
 
-    parameters = typeof parameters === 'string' ?
-      this._parse(parameters) : parameters;
+    value = typeof value === 'string' ?
+      this._parse(value) : value;
 
-    Object.assign(this._parameters, parameters);
+    Object.assign(this._parameters, value);
 
     if (emit === true) {
-      this.emit('parameters', this._parameters, 'parameters');
+      this.emit('parameters', this._parameters);
     }
 
     return this;
   }
 
   go(change) {
-    this.emit('go');
     this._target.go(this, change);
-
     return this;
   }
 

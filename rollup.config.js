@@ -1,18 +1,6 @@
-import babel from 'rollup-plugin-babel';
-import resolve from 'rollup-plugin-node-resolve';
+import buble from 'rollup-plugin-buble';
 import commonjs from 'rollup-plugin-commonjs';
-
-function resolveLocal() {
-  const map = {
-    events: require.resolve('events')
-  };
-
-  return {
-    resolveId: (importee) => {
-      return map[importee] ? map[importee] : null;
-    }
-  };
-}
+import resolve from 'rollup-plugin-node-resolve';
 
 export default {
   entry: 'index.js',
@@ -23,13 +11,9 @@ export default {
   plugins: [
     resolve({
       jsnext: true,
-      preferBuiltins: false,
       skip: ['d3-selection']
     }),
-    resolveLocal(),
     commonjs(),
-    babel({
-      presets: ['es2015-rollup']
-    })
+    buble()
   ]
 };
