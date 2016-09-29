@@ -1,4 +1,4 @@
-import { EventEmitter } from '@scola/events';
+import { EventEmitter } from 'events';
 
 export default class Route extends EventEmitter {
   constructor(target, path, creator) {

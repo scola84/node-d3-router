@@ -1,15 +1,16 @@
 import buble from 'rollup-plugin-buble';
+import builtins from 'rollup-plugin-node-builtins';
 import resolve from 'rollup-plugin-node-resolve';
 
 export default {
+  dest: './dist/d3-router.js',
   entry: 'index.js',
   format: 'umd',
-  globals: {
-    'd3-selection': 'd3'
-  },
+  moduleName: 'd3',
   plugins: [
+    builtins(),
     resolve({
-      'jsnext:main': true
+      jsnext: true
     }),
     buble()
   ]
