@@ -1,12 +1,14 @@
 import { EventEmitter } from 'events';
 
 export default class Route extends EventEmitter {
-  constructor(target, path, creator) {
+  constructor() {
     super();
 
-    this._target = target;
-    this._path = path;
-    this._creator = creator;
+    this._target = null;
+    this._path = null;
+
+    this._authorize = null;
+    this._render = null;
 
     this._parameters = {};
     this._element = null;
@@ -33,23 +35,57 @@ export default class Route extends EventEmitter {
     return this;
   }
 
-  target() {
-    return this._target;
+  target(value) {
+    if (typeof value === 'undefined') {
+      return this._target;
+    }
+
+    this._target = value;
+    return this;
   }
 
-  path() {
-    return this._path;
+  path(value) {
+    if (typeof value === 'undefined') {
+      return this._path;
+    }
+
+    this._path = value;
+    return this;
+  }
+
+  authorize(value) {
+    if (typeof value === 'undefined') {
+      return this._authorize;
+    }
+
+    this._authorize = value;
+    return this;
+  }
+
+  render(value) {
+    if (typeof value === 'undefined') {
+      return this._render;
+    }
+
+    this._render = value;
+    return this;
   }
 
   element() {
-    if (!this._element) {
-      this._element = this._creator(this, this._target.router());
+    if (this._authorize) {
+      const authorized = this._authorize(this._target.router().user());
 
-      this._element
-        .root()
-        .on('destroy', () => this.destroy(false));
+      if (authorized !== true) {
+        return null;
+      }
+    }
 
-      this.emit('parameters', this._parameters);
+    if (this._element === null) {
+      this._element = this._render(this, this._target.router());
+
+      if (this._element !== null) {
+        this.emit('parameters', this._parameters);
+      }
     }
 
     return this._element;

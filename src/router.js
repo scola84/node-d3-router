@@ -4,6 +4,8 @@ import Target from './target';
 export default class Router {
   constructor() {
     this._targets = {};
+    this._user = null;
+
     this._bind();
   }
 
@@ -13,12 +15,27 @@ export default class Router {
     this._unbind();
   }
 
-  target(name, creator) {
-    if (creator) {
-      this._targets[name] = new Target(this, name, creator);
+  target(name) {
+    if (!this._targets[name]) {
+      this._targets[name] = new Target()
+        .router(this)
+        .name(name);
     }
 
     return this._targets[name];
+  }
+
+  user(value) {
+    if (typeof value === 'undefined') {
+      return this._user;
+    }
+
+    if (this._user) {
+      return this;
+    }
+
+    this._user = value;
+    return this;
   }
 
   popState() {

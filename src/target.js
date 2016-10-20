@@ -1,17 +1,19 @@
 import Route from './route';
 
 export default class Target {
-  constructor(router, name, creator) {
-    this._router = router;
-    this._name = name;
-    this._creator = creator;
+  constructor() {
+    this._router = null;
+    this._name = null;
+
+    this._authorize = null;
+    this._render = null;
 
     this._routes = {};
     this._element = null;
     this._current = null;
   }
 
-  destroy(element) {
+  destroy(element, change = 'push') {
     Object.keys(this._routes)
       .forEach((key) => this._routes[key].destroy(false));
 
@@ -24,15 +26,43 @@ export default class Target {
     }
 
     this._current = null;
-    this._router.changeState('push');
+    this._router.changeState(change);
   }
 
-  router() {
-    return this._router;
+  router(value) {
+    if (typeof value === 'undefined') {
+      return this._router;
+    }
+
+    this._router = value;
+    return this;
   }
 
-  name() {
-    return this._name;
+  name(value) {
+    if (typeof value === 'undefined') {
+      return this._name;
+    }
+
+    this._name = value;
+    return this;
+  }
+
+  authorize(value) {
+    if (typeof value === 'undefined') {
+      return this._authorize;
+    }
+
+    this._authorize = value;
+    return this;
+  }
+
+  render(value) {
+    if (typeof value === 'undefined') {
+      return this._render;
+    }
+
+    this._render = value;
+    return this;
   }
 
   element() {
@@ -43,9 +73,11 @@ export default class Target {
     return this._current;
   }
 
-  route(path, creator) {
-    if (creator) {
-      this._routes[path] = new Route(this, path, creator);
+  route(path) {
+    if (!this._routes[path]) {
+      this._routes[path] = new Route()
+        .target(this)
+        .path(path);
     }
 
     return this._routes[path];
@@ -77,15 +109,32 @@ export default class Target {
   }
 
   go(route, change) {
-    if (!this._element) {
-      this._element = this._creator(this);
+    if (this._authorize) {
+      const authorized = this._authorize(this._router.user());
+
+      if (authorized !== true) {
+        return;
+      }
+    }
+
+    if (this._element === null) {
+      this._element = this._render(this, this._router);
+
+      if (this._element === null) {
+        return;
+      }
     }
 
     const current = this._current;
     this._current = route;
 
-    let action = this._action(current, this._current);
     const element = route.element();
+
+    if (element === null) {
+      return;
+    }
+
+    let action = this._action(current, this._current);
 
     if (action === 'clear') {
       this._element.slider().clear();
