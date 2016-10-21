@@ -30,10 +30,6 @@ export default class Router {
       return this._user;
     }
 
-    if (this._user) {
-      return this;
-    }
-
     this._user = value;
     return this;
   }
