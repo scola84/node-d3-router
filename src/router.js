@@ -4,7 +4,7 @@ import Target from './target';
 export default class Router {
   constructor() {
     this._targets = {};
-    this._user = null;
+    this._connection = null;
 
     this._bind();
   }
@@ -25,12 +25,24 @@ export default class Router {
     return this._targets[name];
   }
 
-  user(value) {
+  connection(value) {
     if (typeof value === 'undefined') {
-      return this._user;
+      return this._connection;
     }
 
-    this._user = value;
+    this._connection = value;
+    return this;
+  }
+
+  user(value) {
+    if (typeof value === 'undefined') {
+      return this._connection && this._connection.user();
+    }
+
+    if (this._connection) {
+      this._connection.user(value);
+    }
+
     return this;
   }
 
