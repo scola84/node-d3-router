@@ -13,12 +13,15 @@ export default class Target {
     this._current = null;
   }
 
-  destroy(element, change = 'push') {
-    Object.keys(this._routes)
-      .forEach((key) => this._routes[key].destroy(false));
+  destroy(element = true, change = 'push') {
+    Object.keys(this._routes).forEach((key) => {
+      this._routes[key].destroy(element);
+    });
 
     if (this._element) {
-      if (element !== false) {
+      this._element.root().on('destroy.scola-router', null);
+
+      if (element === true) {
         this._element.destroy();
       }
 
@@ -123,6 +126,10 @@ export default class Target {
       if (this._element === null) {
         return;
       }
+
+      this._element.root().on('destroy.scola-router', () => {
+        this.destroy(false);
+      });
     }
 
     const current = this._current;

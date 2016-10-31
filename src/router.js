@@ -10,7 +10,10 @@ export default class Router {
   }
 
   destroy() {
-    Object.keys(this._targets).forEach((key) => this._targets[key].destroy());
+    Object.keys(this._targets).forEach((key) => {
+      this._targets[key].destroy();
+    });
+
     this._targets = {};
     this._unbind();
   }

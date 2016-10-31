@@ -14,9 +14,11 @@ export default class Route extends EventEmitter {
     this._element = null;
   }
 
-  destroy(element) {
+  destroy(element = true) {
     if (this._element) {
-      if (element !== false) {
+      this._element.root().on('destroy.scola-router', null);
+
+      if (element === true) {
         this._element.destroy();
       }
 
@@ -84,6 +86,10 @@ export default class Route extends EventEmitter {
       this._element = this._render(this, this._target.router());
 
       if (this._element !== null) {
+        this._element.root().on('destroy.scola-router', () => {
+          this.destroy(false);
+        });
+
         this.emit('parameters', this._parameters);
       }
     }
