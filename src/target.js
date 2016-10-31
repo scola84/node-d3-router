@@ -124,6 +124,7 @@ export default class Target {
       this._element = this._render(this, this._router);
 
       if (this._element === null) {
+        this.destroy(false, 'replace');
         return;
       }
 
@@ -138,6 +139,7 @@ export default class Target {
     const element = route.element();
 
     if (element === null) {
+      this.destroy(true, 'replace');
       return;
     }
 
