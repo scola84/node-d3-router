@@ -1,7 +1,10 @@
+import EventEmitter from 'events';
 import Route from './route';
 
-export default class Target {
+export default class Target extends EventEmitter {
   constructor() {
+    super();
+
     this._router = null;
     this._name = null;
 
@@ -157,6 +160,7 @@ export default class Target {
     }
 
     this._router.changeState(change);
+    this.emit('go', route);
   }
 
   stringify() {
