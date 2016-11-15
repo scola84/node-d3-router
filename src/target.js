@@ -147,16 +147,25 @@ export default class Target extends EventEmitter {
     }
 
     let action = this._action(current, this._current);
+    const slider = this._element.slider();
 
     if (action === 'clear') {
-      this._element.slider().clear();
+      slider.clear();
       action = 'forward';
     }
 
     if (action === 'forward') {
-      this._element.slider().append(element).forward();
+      if (!slider.has(element)) {
+        slider.append(element);
+      }
+
+      slider.forward();
     } else if (action === 'backward') {
-      this._element.slider().prepend(element).backward();
+      if (!slider.has(element)) {
+        slider.prepend(element);
+      }
+
+      slider.backward();
     }
 
     this._router.changeState(change);
