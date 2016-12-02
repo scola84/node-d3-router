@@ -1,8 +1,11 @@
 import { select } from 'd3-selection';
+import EventEmitter from 'events';
 import Target from './target';
 
-export default class Router {
+export default class Router extends EventEmitter {
   constructor() {
+    super();
+
     this._targets = {};
     this._connection = null;
 
@@ -47,6 +50,25 @@ export default class Router {
     }
 
     return this;
+  }
+
+  render(path, ...handlers) {
+    let routeName = null;
+    let targetName = null;
+
+    if (path.indexOf('@') > -1) {
+      [routeName, targetName] = path.split('@');
+    } else {
+      targetName = path;
+    }
+
+    let object = this.target(targetName);
+
+    if (routeName) {
+      object = object.route(routeName);
+    }
+
+    return object.render(...handlers);
   }
 
   popState() {

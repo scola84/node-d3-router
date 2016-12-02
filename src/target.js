@@ -1,3 +1,4 @@
+import series from 'async/series';
 import EventEmitter from 'events';
 import Route from './route';
 
@@ -7,32 +8,26 @@ export default class Target extends EventEmitter {
 
     this._router = null;
     this._name = null;
+    this._handlers = null;
 
-    this._authorize = null;
-    this._render = null;
+    this._routes = new Map();
+    this._default = null;
 
-    this._routes = {};
     this._element = null;
     this._current = null;
+    this._previous = null;
   }
 
-  destroy(element = true, change = 'push') {
-    Object.keys(this._routes).forEach((key) => {
-      this._routes[key].destroy(element);
+  destroy(change = 'push') {
+    this._routes.forEach((route) => {
+      route.destroy();
     });
 
-    if (this._element) {
-      this._element.root().on('destroy.scola-router', null);
-
-      if (element === true) {
-        this._element.destroy();
-      }
-
-      this._element = null;
-    }
-
+    this._element = null;
     this._current = null;
+
     this._router.changeState(change);
+    this.emit('destroy');
   }
 
   router(value) {
@@ -53,40 +48,23 @@ export default class Target extends EventEmitter {
     return this;
   }
 
-  authorize(value) {
-    if (typeof value === 'undefined') {
-      return this._authorize;
+  render(...handlers) {
+    if (handlers.length === 0) {
+      return this._handlers;
     }
 
-    this._authorize = value;
+    this._handlers = handlers;
     return this;
-  }
-
-  render(value) {
-    if (typeof value === 'undefined') {
-      return this._render;
-    }
-
-    this._render = value;
-    return this;
-  }
-
-  element() {
-    return this._element;
-  }
-
-  current() {
-    return this._current;
   }
 
   route(path) {
-    if (!this._routes[path]) {
-      this._routes[path] = new Route()
+    if (!this._routes.has(path)) {
+      this._routes.set(path, new Route()
         .target(this)
-        .path(path);
+        .path(path));
     }
 
-    return this._routes[path];
+    return this._routes.get(path);
   }
 
   default (route) {
@@ -98,10 +76,69 @@ export default class Target extends EventEmitter {
     return this._default;
   }
 
+  element(value = null) {
+    if (value === null) {
+      return this._element;
+    }
+
+    if (value === false) {
+      this.destroy('replace');
+      return this;
+    }
+
+    if (this._element) {
+      return this;
+    }
+
+    this._element = value;
+    this._current.execute();
+
+    return this;
+  }
+
+  prepare(route) {
+    this._previous = this._current;
+    this._current = route;
+
+    if (this._element) {
+      this._current.execute();
+    }
+
+    return series(this._handlers.map((handler) => {
+      return (seriesCallback) => {
+        handler(this, seriesCallback);
+      };
+    }), (error) => {
+      if (error) {
+        this._router.emit('error', error);
+      }
+    });
+  }
+
+  finish(change) {
+    let action = this._action(this._previous, this._current);
+
+    if (action === 'clear') {
+      this._element.slider().clear();
+      action = 'forward';
+    }
+
+    if (action === 'forward') {
+      this._forward(this._current.element());
+    } else if (action === 'backward') {
+      this._backward(this._current.element());
+    }
+
+    this._router.changeState(change);
+
+    this.emit('go', this._current);
+    this._current.emit('go', this._current);
+  }
+
   popState(active) {
     if (active) {
-      if (this._routes[active.path]) {
-        this._routes[active.path]
+      if (this._routes.has(active.path)) {
+        this._routes.get(active.path)
           .parameters(active.parameters, true)
           .go();
         return;
@@ -114,62 +151,8 @@ export default class Target extends EventEmitter {
     this.destroy();
   }
 
-  go(route, change) {
-    if (this._authorize) {
-      const authorized = this._authorize(this._router.user());
-
-      if (authorized !== true) {
-        return;
-      }
-    }
-
-    if (this._element === null) {
-      this._element = this._render(this, this._router);
-
-      if (this._element === null) {
-        this.destroy(false, 'replace');
-        return;
-      }
-
-      this._element.root().on('destroy.scola-router', () => {
-        this.destroy(false);
-      });
-    }
-
-    const current = this._current;
-    this._current = route;
-
-    const element = route.element();
-
-    if (element === null) {
-      this.destroy(true, 'replace');
-      return;
-    }
-
-    let action = this._action(current, this._current);
-    const slider = this._element.slider();
-
-    if (action === 'clear') {
-      slider.clear();
-      action = 'forward';
-    }
-
-    if (action === 'forward') {
-      if (!slider.has(element)) {
-        slider.append(element);
-      }
-
-      slider.forward();
-    } else if (action === 'backward') {
-      if (!slider.has(element)) {
-        slider.prepend(element);
-      }
-
-      slider.backward();
-    }
-
-    this._router.changeState(change);
-    this.emit('go', route);
+  current() {
+    return this._current;
   }
 
   stringify() {
@@ -201,5 +184,28 @@ export default class Target extends EventEmitter {
     return inner && outer ?
       outer.slice(0, inner.length).join() === inner.join() :
       false;
+  }
+
+  _forward(element) {
+    const slider = this._element.slider();
+
+    if (!slider.has(element)) {
+      slider.append(element);
+    }
+
+    slider.forward();
+  }
+
+  _backward(element) {
+    const slider = this._element.slider();
+
+    if (!slider.has(element)) {
+      slider.prepend(element);
+    }
+
+    slider.backward();
+
+    this._previous.destroy();
+    this._previous = null;
   }
 }

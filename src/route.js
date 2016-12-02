@@ -1,4 +1,5 @@
-import { EventEmitter } from 'events';
+import series from 'async/series';
+import EventEmitter from 'events';
 
 export default class Route extends EventEmitter {
   constructor() {
@@ -6,35 +7,15 @@ export default class Route extends EventEmitter {
 
     this._target = null;
     this._path = null;
-
-    this._authorize = null;
-    this._render = null;
+    this._handlers = null;
 
     this._parameters = {};
     this._element = null;
   }
 
-  destroy(element = true) {
-    if (this._element) {
-      this._element.root().on('destroy.scola-router', null);
-
-      if (element === true) {
-        this._element.destroy();
-      }
-
-      this._element = null;
-    }
-
+  destroy() {
+    this._element = null;
     this.emit('destroy');
-  }
-
-  route(...args) {
-    return this._target.route(...args);
-  }
-
-  default () {
-    this._target.default(this);
-    return this;
   }
 
   target(value) {
@@ -55,49 +36,21 @@ export default class Route extends EventEmitter {
     return this;
   }
 
-  authorize(value) {
-    if (typeof value === 'undefined') {
-      return this._authorize;
+  render(...handlers) {
+    if (handlers.length === 0) {
+      return this._handlers;
     }
 
-    this._authorize = value;
+    this._handlers = handlers;
     return this;
   }
 
-  render(value) {
-    if (typeof value === 'undefined') {
-      return this._render;
-    }
-
-    this._render = value;
+  default () {
+    this._target.default(this);
     return this;
   }
 
-  element() {
-    if (this._authorize) {
-      const authorized = this._authorize(this._target.router().user());
-
-      if (authorized !== true) {
-        return null;
-      }
-    }
-
-    if (this._element === null) {
-      this._element = this._render(this, this._target.router());
-
-      if (this._element !== null) {
-        this._element.root().on('destroy.scola-router', () => {
-          this.destroy(false);
-        });
-
-        this.emit('parameters', this._parameters);
-      }
-    }
-
-    return this._element;
-  }
-
-  parameter(name, value, emit) {
+  parameter(name, value) {
     if (typeof value === 'undefined') {
       return this._parameters[name];
     }
@@ -108,14 +61,11 @@ export default class Route extends EventEmitter {
       this._parameters[name] = value;
     }
 
-    if (emit === true) {
-      this.emit('parameters', this._parameters);
-    }
-
+    this.emit('parameters', this._parameters);
     return this;
   }
 
-  parameters(value, emit) {
+  parameters(value) {
     if (typeof value === 'undefined') {
       return this._parameters;
     }
@@ -125,16 +75,52 @@ export default class Route extends EventEmitter {
 
     Object.assign(this._parameters, value);
 
-    if (emit === true) {
-      this.emit('parameters', this._parameters);
+    this.emit('parameters', this._parameters);
+    return this;
+  }
+
+  element(value = null) {
+    if (value === null) {
+      return this._element;
     }
+
+    if (value === false) {
+      this._target.destroy('replace');
+      return this;
+    }
+
+    if (this._element) {
+      return this;
+    }
+
+    this._element = value;
+    this._target.finish(this._change);
 
     return this;
   }
 
   go(change) {
-    this._target.go(this, change);
-    return this;
+    this._change = change;
+    this._target.prepare(this);
+  }
+
+  execute() {
+    if (this._element) {
+      this._target.finish(this._change);
+      return;
+    }
+
+    series(this._handlers.map((handler) => {
+      return (seriesCallback) => {
+        handler(this, seriesCallback);
+      };
+    }), (error) => {
+      if (error) {
+        this._target
+          .router()
+          .emit('error');
+      }
+    });
   }
 
   stringify() {
