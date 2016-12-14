@@ -18,21 +18,21 @@ export default class Route extends EventEmitter {
     this.emit('destroy');
   }
 
-  target(value) {
-    if (typeof value === 'undefined') {
-      return this._target;
-    }
-
-    this._target = value;
-    return this;
-  }
-
   path(value) {
     if (typeof value === 'undefined') {
       return this._path;
     }
 
     this._path = value;
+    return this;
+  }
+
+  target(value) {
+    if (typeof value === 'undefined') {
+      return this._target;
+    }
+
+    this._target = value;
     return this;
   }
 
@@ -118,7 +118,7 @@ export default class Route extends EventEmitter {
       if (error) {
         this._target
           .router()
-          .emit('error');
+          .emit('error', error);
       }
     });
   }
