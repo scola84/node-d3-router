@@ -6,8 +6,8 @@ export default class Router extends EventEmitter {
   constructor() {
     super();
 
-    this._targets = {};
     this._connection = null;
+    this._targets = {};
 
     this._bind();
   }
@@ -21,6 +21,15 @@ export default class Router extends EventEmitter {
     this._unbind();
   }
 
+  connection(value = null) {
+    if (value === null) {
+      return this._connection;
+    }
+
+    this._connection = value;
+    return this;
+  }
+
   target(name) {
     if (!this._targets[name]) {
       this._targets[name] = new Target()
@@ -31,17 +40,8 @@ export default class Router extends EventEmitter {
     return this._targets[name];
   }
 
-  connection(value) {
-    if (typeof value === 'undefined') {
-      return this._connection;
-    }
-
-    this._connection = value;
-    return this;
-  }
-
-  user(value) {
-    if (typeof value === 'undefined') {
+  user(value = null) {
+    if (value === null) {
       return this._connection && this._connection.user();
     }
 

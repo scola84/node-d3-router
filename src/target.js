@@ -30,8 +30,19 @@ export default class Target extends EventEmitter {
     this.emit('destroy');
   }
 
-  router(value) {
-    if (typeof value === 'undefined') {
+  current() {
+    return this._current;
+  }
+
+  stringify() {
+    return [
+      this._current.stringify(),
+      this._name
+    ].join('@');
+  }
+
+  router(value = null) {
+    if (value === null) {
       return this._router;
     }
 
@@ -39,8 +50,8 @@ export default class Target extends EventEmitter {
     return this;
   }
 
-  name(value) {
-    if (typeof value === 'undefined') {
+  name(value = null) {
+    if (value === null) {
       return this._name;
     }
 
@@ -97,19 +108,27 @@ export default class Target extends EventEmitter {
   }
 
   prepare(route) {
+    const action = this._action(this._current, route);
+
+    if (action === 'stay') {
+      return;
+    }
+
     this._previous = this._current;
     this._current = route;
 
     if (this._element) {
       this._current.execute();
+      return;
     }
 
-    return series(this._handlers.map((handler) => {
+    series(this._handlers.map((handler) => {
       return (seriesCallback) => {
         handler(this, seriesCallback);
       };
     }), (error) => {
       if (error) {
+        this.destroy('replace');
         this._router.emit('error', error);
       }
     });
@@ -139,24 +158,16 @@ export default class Target extends EventEmitter {
     if (active) {
       if (this._routes.has(active.path)) {
         this._routes.get(active.path)
-          .parameters(active.parameters, true)
-          .go();
+          .parameters(active.parameters)
+          .go('replace');
         return;
       }
     } else if (this._default) {
-      this._default.go();
+      this._default.go('replace');
       return;
     }
 
     this.destroy();
-  }
-
-  current() {
-    return this._current;
-  }
-
-  stringify() {
-    return this._current.stringify() + '@' + this._name;
   }
 
   _action(current, next) {

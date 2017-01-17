@@ -18,21 +18,21 @@ export default class Route extends EventEmitter {
     this.emit('destroy');
   }
 
-  path(value) {
-    if (typeof value === 'undefined') {
-      return this._path;
-    }
-
-    this._path = value;
-    return this;
-  }
-
-  target(value) {
-    if (typeof value === 'undefined') {
+  target(value = null) {
+    if (value === null) {
       return this._target;
     }
 
     this._target = value;
+    return this;
+  }
+
+  path(value = null) {
+    if (value === null) {
+      return this._path;
+    }
+
+    this._path = value;
     return this;
   }
 
@@ -50,8 +50,8 @@ export default class Route extends EventEmitter {
     return this;
   }
 
-  parameter(name, value) {
-    if (typeof value === 'undefined') {
+  parameter(name, value = null) {
+    if (value === null) {
       return this._parameters[name];
     }
 
@@ -65,8 +65,8 @@ export default class Route extends EventEmitter {
     return this;
   }
 
-  parameters(value) {
-    if (typeof value === 'undefined') {
+  parameters(value = null) {
+    if (value === null) {
       return this._parameters;
     }
 
