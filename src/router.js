@@ -7,18 +7,23 @@ export default class Router extends EventEmitter {
     super();
 
     this._connection = null;
-    this._targets = {};
+    this._model = null;
+    this._user = null;
+    this._targets = new Map();
 
-    this._bind();
+    this._handleSet = (e) => this._set(e);
+    this._bindWindow();
   }
 
   destroy() {
-    Object.keys(this._targets).forEach((key) => {
-      this._targets[key].destroy();
+    this._unbindModel();
+    this._unbindWindow();
+
+    this._target.forEach((target) => {
+      target.destroy();
     });
 
-    this._targets = {};
-    this._unbind();
+    this._targets.clear();
   }
 
   connection(value = null) {
@@ -30,26 +35,34 @@ export default class Router extends EventEmitter {
     return this;
   }
 
-  target(name) {
-    if (!this._targets[name]) {
-      this._targets[name] = new Target()
-        .router(this)
-        .name(name);
+  model(value = null) {
+    if (value === null) {
+      return this._model;
     }
 
-    return this._targets[name];
+    this._model = value;
+    this._bindModel();
+
+    return this;
   }
 
   user(value = null) {
     if (value === null) {
-      return this._connection && this._connection.user();
+      return this._user;
     }
 
-    if (this._connection) {
-      this._connection.user(value);
-    }
-
+    this._user = value;
     return this;
+  }
+
+  target(name) {
+    if (!this._targets.has(name)) {
+      this._targets.set(name, new Target()
+        .router(this)
+        .name(name));
+    }
+
+    return this._targets.get(name);
   }
 
   render(path, ...handlers) {
@@ -74,54 +87,92 @@ export default class Router extends EventEmitter {
   popState() {
     const active = {};
 
-    window.location.hash.substr(2).split('/').forEach((state) => {
-      if (!state) {
-        return;
-      }
+    window.location.hash
+      .substr(1)
+      .split('/')
+      .forEach((state) => {
+        if (!state) {
+          return;
+        }
 
-      const [route, target] = state.split('@');
-      const [path, parameters = ''] = route.split(':');
+        const [route, target] = state.split('@');
+        const [path, parameters = ''] = route.split(':');
 
-      active[target] = {
-        path,
-        parameters
-      };
-    });
+        active[target] = {
+          path,
+          parameters
+        };
+      });
 
-    Object.keys(this._targets).forEach((name) => {
-      this._targets[name].popState(active[name]);
+    this._targets.forEach((target) => {
+      target.popState(active[target.name()]);
     });
   }
 
   changeState(change) {
     const state = this._stringify();
 
-    if (state !== window.location.hash.substr(1)) {
-      if (change === 'push') {
-        window.history.pushState(state, null, '#' + state);
-      } else if (change === 'replace') {
-        window.history.replaceState(state, null, '#' + state);
+    if (state === window.location.hash.substr(1)) {
+      return;
+    }
+
+    if (change === 'push') {
+      window.history.pushState(state, null, '#' + state);
+    } else if (change === 'replace') {
+      window.history.replaceState(state, null, '#' + state);
+    }
+
+    this._targets.forEach((target) => {
+      if (target.current()) {
+        this._model.set(target.name(), target.current().path(), 'go');
       }
+    });
+  }
+
+  _bindWindow() {
+    if (typeof window !== 'undefined') {
+      select(window).on('popstate.scola-router', () => this.popState());
     }
   }
 
-  _bind() {
-    select(window).on('popstate.scola-router', () => this.popState());
+  _unbindWindow() {
+    if (typeof window !== 'undefined') {
+      select(window).on('popstate.scola-router', null);
+    }
   }
 
-  _unbind() {
-    select(window).on('popstate.scola-router', null);
+  _bindModel() {
+    if (this._model) {
+      this._model.on('set', this._handleSet);
+    }
+  }
+
+  _unbindModel() {
+    if (this._model) {
+      this._model.removeListener('set', this._handleSet);
+    }
+  }
+
+  _set(setEvent) {
+    if (setEvent.scope === 'go') {
+      return;
+    }
+
+    if (!this._targets.has(setEvent.name)) {
+      return;
+    }
+
+    this
+      .target(setEvent.name)
+      .route(setEvent.value)
+      .go('push');
   }
 
   _stringify() {
-    let result = '';
-
-    Object.keys(this._targets).forEach((name) => {
-      if (this._targets[name].current()) {
-        result += '/' + this._targets[name].stringify();
-      }
-    });
-
-    return result;
+    return Array
+      .from(this._targets.values())
+      .filter((target) => Boolean(target.current()))
+      .map((target) => target.stringify())
+      .join('/');
   }
 }

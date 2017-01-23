@@ -8,7 +8,7 @@ export default class Target extends EventEmitter {
 
     this._router = null;
     this._name = null;
-    this._handlers = null;
+    this._handlers = [];
 
     this._routes = new Map();
     this._default = null;
