@@ -171,8 +171,10 @@ export default class Router extends EventEmitter {
   _stringify() {
     return Array
       .from(this._targets.values())
-      .filter((target) => Boolean(target.current()))
-      .map((target) => target.stringify())
-      .join('/');
+      .reduce((string, target) => {
+        return target.current() ?
+          string + '/' + target.stringify() :
+          string;
+      }, '');
   }
 }
