@@ -112,7 +112,11 @@ export default class Route extends EventEmitter {
 
     series(this._handlers.map((handler) => {
       return (seriesCallback) => {
-        handler(this, seriesCallback);
+        try {
+          handler(this, seriesCallback);
+        } catch (error) {
+          seriesCallback(error);
+        }
       };
     }), (error) => {
       if (error) {
