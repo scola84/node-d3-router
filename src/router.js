@@ -19,7 +19,7 @@ export default class Router extends EventEmitter {
     this._unbindModel();
     this._unbindWindow();
 
-    this._target.forEach((target) => {
+    this._targets.forEach((target) => {
       target.destroy();
     });
 

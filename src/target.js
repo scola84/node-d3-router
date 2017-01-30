@@ -19,10 +19,6 @@ export default class Target extends EventEmitter {
   }
 
   destroy(change = 'push') {
-    this._routes.forEach((route) => {
-      route.destroy();
-    });
-
     this._element = null;
     this._current = null;
 
@@ -65,6 +61,23 @@ export default class Target extends EventEmitter {
     }
 
     this._handlers = handlers;
+    return this;
+  }
+
+  routes(value = null) {
+    if (value === null) {
+      return this._routes;
+    }
+
+    if (value === false) {
+      this._routes.forEach((route) => {
+        route.destroy();
+      });
+
+      return this;
+    }
+
+    this._routes = value;
     return this;
   }
 
@@ -124,7 +137,11 @@ export default class Target extends EventEmitter {
 
     series(this._handlers.map((handler) => {
       return (seriesCallback) => {
-        handler(this, seriesCallback);
+        try {
+          handler(this, seriesCallback);
+        } catch (error) {
+          seriesCallback(error);
+        }
       };
     }), (error) => {
       if (error) {
@@ -214,9 +231,9 @@ export default class Target extends EventEmitter {
       slider.prepend(element);
     }
 
-    slider.backward();
-
-    this._previous.destroy();
-    this._previous = null;
+    slider.backward(() => {
+      this._previous.destroy();
+      this._previous = null;
+    });
   }
 }

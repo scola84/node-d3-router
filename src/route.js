@@ -8,6 +8,7 @@ export default class Route extends EventEmitter {
     this._target = null;
     this._path = null;
     this._handlers = [];
+    this._change = null;
 
     this._parameters = {};
     this._element = null;
