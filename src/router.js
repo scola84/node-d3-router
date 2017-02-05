@@ -86,23 +86,19 @@ export default class Router extends EventEmitter {
 
   popState() {
     const active = {};
-
-    window.location.hash
+    const states = window.location.hash
       .substr(1)
-      .split('/')
-      .forEach((state) => {
-        if (!state) {
-          return;
-        }
+      .split('/');
 
-        const [route, target] = state.split('@');
-        const [path, parameters = ''] = route.split(':');
+    states.forEach((state) => {
+      const [route, target] = state.split('@');
+      const [path, parameters = ''] = route.split(':');
 
-        active[target] = {
-          path,
-          parameters
-        };
-      });
+      active[target] = {
+        path,
+        parameters
+      };
+    });
 
     this._targets.forEach((target) => {
       target.popState(active[target.name()]);

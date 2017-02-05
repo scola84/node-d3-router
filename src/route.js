@@ -80,7 +80,7 @@ export default class Route extends EventEmitter {
     return this;
   }
 
-  element(value = null) {
+  element(value = null, destroy = null) {
     if (value === null) {
       return this._element;
     }
@@ -92,6 +92,10 @@ export default class Route extends EventEmitter {
 
     if (this._element) {
       return this;
+    }
+
+    if (destroy) {
+      this.once('destroy', destroy);
     }
 
     this._element = value;

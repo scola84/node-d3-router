@@ -100,7 +100,7 @@ export default class Target extends EventEmitter {
     return this._default;
   }
 
-  element(value = null) {
+  element(value = null, destroy = null) {
     if (value === null) {
       return this._element;
     }
@@ -112,6 +112,10 @@ export default class Target extends EventEmitter {
 
     if (this._element) {
       return this;
+    }
+
+    if (destroy) {
+      this.once('destroy', destroy);
     }
 
     this._element = value;
@@ -171,14 +175,14 @@ export default class Target extends EventEmitter {
     this._current.emit('go', this._current);
   }
 
-  popState(active) {
-    if (active) {
-      if (this._routes.has(active.path)) {
-        this._routes.get(active.path)
-          .parameters(active.parameters)
-          .go('replace');
-        return;
-      }
+  popState(active = {}) {
+    const route = this._routes.get(active.path);
+
+    if (route) {
+      route
+        .parameters(active.parameters)
+        .go('replace');
+      return;
     } else if (this._default) {
       this._default.go('replace');
       return;
