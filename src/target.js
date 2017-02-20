@@ -159,7 +159,7 @@ export default class Target extends EventEmitter {
     let action = this._action(this._previous, this._current);
 
     if (action === 'clear') {
-      this._element.slider().clear();
+      this._clear();
       action = 'forward';
     }
 
@@ -239,5 +239,14 @@ export default class Target extends EventEmitter {
       this._previous.destroy();
       this._previous = null;
     });
+  }
+
+  _clear() {
+    this._element.slider().clear();
+
+    if (this._previous) {
+      this._previous.destroy();
+      this._previous = null;
+    }
   }
 }
