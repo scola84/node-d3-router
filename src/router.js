@@ -52,6 +52,8 @@ export default class Router extends EventEmitter {
     }
 
     this._user = value;
+    this.emit('user', value);
+
     return this;
   }
 
@@ -120,7 +122,8 @@ export default class Router extends EventEmitter {
 
     this._targets.forEach((target) => {
       if (target.current()) {
-        this._model.set(target.name(), target.current().path(), 'go');
+        this._model.set(target.name(),
+          target.current().stringify(), 'go');
       }
     });
   }
@@ -158,9 +161,12 @@ export default class Router extends EventEmitter {
       return;
     }
 
+    const [path, parameters = ''] = setEvent.value.split(':');
+
     this
       .target(setEvent.name)
-      .route(setEvent.value)
+      .route(path)
+      .parameters(parameters)
       .go('push');
   }
 
