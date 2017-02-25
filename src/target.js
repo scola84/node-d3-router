@@ -128,6 +128,7 @@ export default class Target extends EventEmitter {
     const action = this._action(this._current, route);
 
     if (action === 'stay') {
+      this._router.changeState('replace');
       return;
     }
 

@@ -56,7 +56,7 @@ export default class Route extends EventEmitter {
       return this._parameters[name];
     }
 
-    if (value === null) {
+    if (value === false) {
       delete this._parameters[name];
     } else {
       this._parameters[name] = value;
