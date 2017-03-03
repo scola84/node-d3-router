@@ -1,22 +1,19 @@
 import { select } from 'd3';
-import EventEmitter from 'events';
+import { Observer } from '@scola/d3-model';
 import Target from './target';
 
-export default class Router extends EventEmitter {
+export default class Router extends Observer {
   constructor() {
     super();
 
     this._connection = null;
-    this._model = null;
     this._user = null;
     this._targets = new Map();
 
-    this._handleSet = (e) => this._set(e);
     this._bindWindow();
   }
 
   destroy() {
-    this._unbindModel();
     this._unbindWindow();
 
     this._targets.forEach((target) => {
@@ -32,17 +29,6 @@ export default class Router extends EventEmitter {
     }
 
     this._connection = value;
-    return this;
-  }
-
-  model(value = null) {
-    if (value === null) {
-      return this._model;
-    }
-
-    this._model = value;
-    this._bindModel();
-
     return this;
   }
 
@@ -137,18 +123,6 @@ export default class Router extends EventEmitter {
   _unbindWindow() {
     if (typeof window !== 'undefined') {
       select(window).on('popstate.scola-router', null);
-    }
-  }
-
-  _bindModel() {
-    if (this._model) {
-      this._model.on('set', this._handleSet);
-    }
-  }
-
-  _unbindModel() {
-    if (this._model) {
-      this._model.removeListener('set', this._handleSet);
     }
   }
 
