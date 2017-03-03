@@ -1,5 +1,9 @@
 import Router from './src/router';
 
-export function router() {
+function router() {
   return new Router();
 }
+
+export {
+  router
+};
