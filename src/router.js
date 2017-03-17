@@ -38,8 +38,6 @@ export default class Router extends Observer {
     }
 
     this._user = value;
-    this.emit('user', value);
-
     return this;
   }
 
