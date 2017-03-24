@@ -82,7 +82,7 @@ export default class Target extends EventEmitter {
   }
 
   route(path) {
-    if (!this._routes.has(path)) {
+    if (this._routes.has(path) === false) {
       this._routes.set(path, new Route()
         .target(this)
         .path(path));
@@ -222,7 +222,7 @@ export default class Target extends EventEmitter {
   _forward(element) {
     const slider = this._element.slider();
 
-    if (!slider.has(element)) {
+    if (slider.has(element) === false) {
       slider.append(element);
     }
 
@@ -232,7 +232,7 @@ export default class Target extends EventEmitter {
   _backward(element) {
     const slider = this._element.slider();
 
-    if (!slider.has(element)) {
+    if (slider.has(element) === false) {
       slider.prepend(element);
     }
 

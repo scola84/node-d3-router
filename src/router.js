@@ -42,7 +42,7 @@ export default class Router extends Observer {
   }
 
   target(name) {
-    if (!this._targets.has(name)) {
+    if (this._targets.has(name) === false) {
       this._targets.set(name, new Target()
         .router(this)
         .name(name));
@@ -107,7 +107,7 @@ export default class Router extends Observer {
     this._targets.forEach((target) => {
       if (target.current()) {
         this._model.set(target.name(),
-          target.current().stringify(), 'go');
+          target.current().stringify(), false);
       }
     });
   }
@@ -125,11 +125,10 @@ export default class Router extends Observer {
   }
 
   _set(setEvent) {
-    if (setEvent.scope === 'go') {
-      return;
-    }
+    const cancel = setEvent.changed === false ||
+      this._targets.has(setEvent.name) === false;
 
-    if (!this._targets.has(setEvent.name)) {
+    if (cancel) {
       return;
     }
 
