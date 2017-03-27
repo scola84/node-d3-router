@@ -52,18 +52,16 @@ export default class Router extends Observer {
   }
 
   render(path, ...handlers) {
-    let routeName = null;
-    let targetName = null;
+    let routeName = '';
+    let targetName = path;
 
     if (path.indexOf('@') > -1) {
       [routeName, targetName] = path.split('@');
-    } else {
-      targetName = path;
     }
 
     let object = this.target(targetName);
 
-    if (routeName) {
+    if (routeName.length > 0) {
       object = object.route(routeName);
     }
 
@@ -105,7 +103,7 @@ export default class Router extends Observer {
     }
 
     this._targets.forEach((target) => {
-      if (target.current()) {
+      if (target.current() !== null) {
         this._model.set(target.name(),
           target.current().stringify(), false);
       }
@@ -125,10 +123,11 @@ export default class Router extends Observer {
   }
 
   _set(setEvent) {
-    const cancel = setEvent.changed === false ||
+    const cancel =
+      setEvent.changed === false ||
       this._targets.has(setEvent.name) === false;
 
-    if (cancel) {
+    if (cancel === true) {
       return;
     }
 
@@ -145,9 +144,9 @@ export default class Router extends Observer {
     return Array
       .from(this._targets.values())
       .reduce((string, target) => {
-        return target.current() ?
-          string + '/' + target.stringify() :
-          string;
+        return target.current() === null ?
+          string :
+          string + '/' + target.stringify();
       }, '');
   }
 }

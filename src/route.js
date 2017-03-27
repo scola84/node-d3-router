@@ -53,7 +53,8 @@ export default class Route extends EventEmitter {
 
   parameter(name, value = null) {
     if (value === null) {
-      return this._parameters[name];
+      return typeof this._parameters[name] === 'undefined' ?
+        null : this._parameters[name];
     }
 
     if (value === false) {
@@ -80,7 +81,7 @@ export default class Route extends EventEmitter {
     return this;
   }
 
-  element(value = null, destroy = null) {
+  element(value = null, destroy = () => {}) {
     if (value === null) {
       return this._element;
     }
@@ -90,13 +91,11 @@ export default class Route extends EventEmitter {
       return this;
     }
 
-    if (this._element) {
+    if (this._element !== null) {
       return this;
     }
 
-    if (destroy) {
-      this.once('destroy', destroy);
-    }
+    this.once('destroy', destroy);
 
     this._element = value;
     this._target.finish(this._change);
@@ -110,24 +109,24 @@ export default class Route extends EventEmitter {
   }
 
   execute() {
-    if (this._element) {
+    if (this._element !== null) {
       this._target.finish(this._change);
       return;
     }
+
+    const router = this._target.router();
 
     series(this._handlers.map((handler) => {
       return (seriesCallback) => {
         try {
           handler(this, seriesCallback);
         } catch (error) {
-          seriesCallback(error);
+          router.emit('error', error);
         }
       };
     }), (error) => {
-      if (error) {
-        this._target
-          .router()
-          .emit('error', error);
+      if (error instanceof Error === true) {
+        router.emit('error', error);
       }
     });
   }
@@ -142,9 +141,9 @@ export default class Route extends EventEmitter {
     return string;
   }
 
-  _parse(string) {
+  _parse(string = '') {
     const parameters = {};
-    const parts = string ? string.split('&') : [];
+    const parts = string.length > 0 ? string.split('&') : [];
 
     parts.forEach((part) => {
       const [key, value] = part.split('=');

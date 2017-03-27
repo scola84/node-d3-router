@@ -91,16 +91,16 @@ export default class Target extends EventEmitter {
     return this._routes.get(path);
   }
 
-  default (route) {
-    if (route) {
-      this._default = route;
-      return this;
+  default (route = null) {
+    if (route === null) {
+      return this._default;
     }
 
-    return this._default;
+    this._default = route;
+    return this;
   }
 
-  element(value = null, destroy = null) {
+  element(value = null, destroy = () => {}) {
     if (value === null) {
       return this._element;
     }
@@ -110,13 +110,11 @@ export default class Target extends EventEmitter {
       return this;
     }
 
-    if (this._element) {
+    if (this._element !== null) {
       return this;
     }
 
-    if (destroy) {
-      this.once('destroy', destroy);
-    }
+    this.once('destroy', destroy);
 
     this._element = value;
     this._current.execute();
@@ -125,7 +123,7 @@ export default class Target extends EventEmitter {
   }
 
   prepare(route) {
-    const action = this._action(this._current, route);
+    const action = this._action(route, this._current);
 
     if (action === 'stay') {
       this._router.changeState('replace');
@@ -135,7 +133,7 @@ export default class Target extends EventEmitter {
     this._previous = this._current;
     this._current = route;
 
-    if (this._element) {
+    if (this._element !== null) {
       this._current.execute();
       return;
     }
@@ -145,11 +143,11 @@ export default class Target extends EventEmitter {
         try {
           handler(this, seriesCallback);
         } catch (error) {
-          seriesCallback(error);
+          this._router.emit('error', error);
         }
       };
     }), (error) => {
-      if (error) {
+      if (error instanceof Error === true) {
         this.destroy('replace');
         this._router.emit('error', error);
       }
@@ -157,7 +155,7 @@ export default class Target extends EventEmitter {
   }
 
   finish(change) {
-    let action = this._action(this._previous, this._current);
+    let action = this._action(this._current, this._previous);
 
     if (action === 'clear') {
       this._clear();
@@ -179,12 +177,13 @@ export default class Target extends EventEmitter {
   popState(active = {}) {
     const route = this._routes.get(active.path);
 
-    if (route) {
-      route
-        .parameters(active.parameters)
-        .go('replace');
+    if (route instanceof Route === true) {
+      route.parameters(active.parameters);
+      route.go('replace');
       return;
-    } else if (this._default) {
+    }
+
+    if (this._default instanceof Route === true) {
       this._default.go('replace');
       return;
     }
@@ -192,21 +191,26 @@ export default class Target extends EventEmitter {
     this.destroy();
   }
 
-  _action(current, next) {
-    if (current && next && current.path() === next.path()) {
-      return 'stay';
-    }
-
-    current = current && current.path().split('.');
-    next = next && next.path().split('.');
-
-    if (!current || Math.abs(current.length - next.length) > 1) {
+  _action(next, current = null) {
+    if (current === null) {
       return 'clear';
     }
 
-    if (this._contains(next, current)) {
+    current = current.path();
+    next = next.path();
+
+    if (next === current) {
+      return 'stay';
+    }
+
+    current = current.split('.');
+    next = next.split('.');
+
+    if (Math.abs(current.length - next.length) > 1) {
+      return 'clear';
+    } else if (this._contains(next, current) === true) {
       return 'forward';
-    } else if (this._contains(current, next)) {
+    } else if (this._contains(current, next) === true) {
       return 'backward';
     }
 
@@ -214,9 +218,9 @@ export default class Target extends EventEmitter {
   }
 
   _contains(outer, inner) {
-    return inner && outer ?
-      outer.slice(0, inner.length).join() === inner.join() :
-      false;
+    return outer
+      .slice(0, inner.length)
+      .join() === inner.join();
   }
 
   _forward(element) {
