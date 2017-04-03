@@ -1,4 +1,5 @@
 import { select } from 'd3';
+import { ScolaError } from '@scola/error';
 import { Observer } from '@scola/d3-model';
 import Target from './target';
 
@@ -66,6 +67,10 @@ export default class Router extends Observer {
     }
 
     return object.render(...handlers);
+  }
+
+  error(message) {
+    return new ScolaError(message);
   }
 
   popState() {
