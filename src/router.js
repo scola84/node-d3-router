@@ -128,11 +128,7 @@ export default class Router extends Observer {
   }
 
   _set(setEvent) {
-    const cancel =
-      setEvent.changed === false ||
-      this._targets.has(setEvent.name) === false;
-
-    if (cancel === true) {
+    if (this._targets.has(setEvent.name) === false) {
       return;
     }
 
