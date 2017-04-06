@@ -15,6 +15,7 @@ export default class Router extends Observer {
   }
 
   destroy() {
+    super.destroy();
     this._unbindWindow();
 
     this._targets.forEach((target) => {
