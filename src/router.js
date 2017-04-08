@@ -74,7 +74,7 @@ export default class Router extends Observer {
     return new ScolaError(message);
   }
 
-  popState() {
+  popState(filter = null) {
     const active = {};
     const states = window.location.hash
       .substr(1)
@@ -91,7 +91,13 @@ export default class Router extends Observer {
     });
 
     this._targets.forEach((target) => {
-      target.popState(active[target.name()]);
+      const pop =
+        filter === null ||
+        filter.indexOf(target.name()) > -1;
+
+      if (pop === true) {
+        target.popState(active[target.name()]);
+      }
     });
   }
 
