@@ -8,7 +8,9 @@
   "main": "./index.js",
   "jsnext:main": "./index.js",
   "dependencies": {
-    "async": "^2.1.4",
-    "d3-selection": "^1.0.3"
+    "@scola/d3-model": "^3.0.0",
+    "@scola/error": "^5.0.0",
+    "async": "^2.3.0",
+    "d3": "^4.8.0"
   }
 }
