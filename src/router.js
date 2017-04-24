@@ -39,6 +39,8 @@ export default class Router extends Observer {
       return this._user;
     }
 
+    value = value === false ? null : value;
+
     this._user = value;
     return this;
   }
