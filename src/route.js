@@ -8,7 +8,6 @@ export default class Route extends EventEmitter {
     this._target = null;
     this._path = null;
     this._handlers = [];
-    this._change = null;
 
     this._parameters = {};
     this._element = null;
@@ -87,7 +86,7 @@ export default class Route extends EventEmitter {
     }
 
     if (value === false) {
-      this._target.destroy('replace');
+      this._target.destroy();
       return this;
     }
 
@@ -98,19 +97,18 @@ export default class Route extends EventEmitter {
     this.once('destroy', destroy);
 
     this._element = value;
-    this._target.finish(this._change);
+    this._target.finish();
 
     return this;
   }
 
-  go(change) {
-    this._change = change;
-    this._target.prepare(this);
+  go(action = 'forward') {
+    this._target.prepare(this, action);
   }
 
   execute() {
     if (this._element !== null) {
-      this._target.finish(this._change);
+      this._target.finish();
       return;
     }
 
@@ -147,7 +145,8 @@ export default class Route extends EventEmitter {
 
     parts.forEach((part) => {
       const [key, value] = part.split('=');
-      parameters[decodeURIComponent(key)] = decodeURIComponent(value);
+      parameters[decodeURIComponent(key)] =
+        decodeURIComponent(value);
     });
 
     return parameters;

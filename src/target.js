@@ -15,19 +15,23 @@ export default class Target extends EventEmitter {
 
     this._element = null;
     this._current = null;
-    this._previous = null;
+    this._history = [];
   }
 
-  destroy(change = 'push') {
+  destroy() {
     this._element = null;
     this._current = null;
 
-    this._router.changeState(change);
+    this._router.changeState();
     this.emit('destroy');
   }
 
   current() {
     return this._current;
+  }
+
+  history() {
+    return this._history;
   }
 
   stringify() {
@@ -106,7 +110,7 @@ export default class Target extends EventEmitter {
     }
 
     if (value === false) {
-      this.destroy('replace');
+      this.destroy();
       return this;
     }
 
@@ -122,16 +126,33 @@ export default class Target extends EventEmitter {
     return this;
   }
 
-  prepare(route) {
-    const action = this._action(route, this._current);
+  backward() {
+    const route = this._history[this._history.length - 1];
 
-    if (action === 'stay') {
-      this._router.changeState('replace');
+    if (route instanceof Route === true) {
+      route.go('backward');
+    }
+  }
+
+  prepare(route, action) {
+    if (this._current === route) {
       return;
     }
 
-    this._previous = this._current;
+    const push =
+      this._current !== null &&
+      action === 'forward' ||
+      action === 'clear';
+
+    if (push === true) {
+      this._history.push(this._current);
+    } else if (action === 'backward') {
+      this._previous = this._current;
+      this._current = this._history.pop();
+    }
+
     this._current = route;
+    this._action = action;
 
     if (this._element !== null) {
       this._current.execute();
@@ -148,14 +169,14 @@ export default class Target extends EventEmitter {
       };
     }), (error) => {
       if (error instanceof Error === true) {
-        this.destroy('replace');
+        this.destroy();
         this._router.emit('error', error);
       }
     });
   }
 
-  finish(change) {
-    let action = this._action(this._current, this._previous);
+  finish() {
+    let action = this._action;
 
     if (action === 'clear') {
       this._clear();
@@ -168,7 +189,7 @@ export default class Target extends EventEmitter {
       this._backward(this._current.element());
     }
 
-    this._router.changeState(change);
+    this._router.changeState();
 
     this.emit('go', this._current);
     this._current.emit('go', this._current);
@@ -179,48 +200,16 @@ export default class Target extends EventEmitter {
 
     if (route instanceof Route === true) {
       route.parameters(active.parameters);
-      route.go('replace');
+      route.go();
       return;
     }
 
     if (this._default instanceof Route === true) {
-      this._default.go('replace');
+      this._default.go();
       return;
     }
 
     this.destroy();
-  }
-
-  _action(next, current = null) {
-    if (current === null) {
-      return 'clear';
-    }
-
-    current = current.path();
-    next = next.path();
-
-    if (next === current) {
-      return 'stay';
-    }
-
-    current = current.split('.');
-    next = next.split('.');
-
-    if (Math.abs(current.length - next.length) > 1) {
-      return 'clear';
-    } else if (this._contains(next, current) === true) {
-      return 'forward';
-    } else if (this._contains(current, next) === true) {
-      return 'backward';
-    }
-
-    return 'clear';
-  }
-
-  _contains(outer, inner) {
-    return outer
-      .slice(0, inner.length)
-      .join() === inner.join();
   }
 
   _forward(element) {
@@ -249,9 +238,10 @@ export default class Target extends EventEmitter {
   _clear() {
     this._element.slider().clear();
 
-    if (this._previous) {
-      this._previous.destroy();
-      this._previous = null;
-    }
+    this._history.forEach((route) => {
+      route.destroy();
+    });
+
+    this._history = [];
   }
 }

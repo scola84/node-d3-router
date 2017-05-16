@@ -1,4 +1,3 @@
-import { select } from 'd3';
 import { ScolaError } from '@scola/error';
 import { Observer } from '@scola/d3-model';
 import Target from './target';
@@ -10,13 +9,10 @@ export default class Router extends Observer {
     this._connection = null;
     this._user = null;
     this._targets = new Map();
-
-    this._bindWindow();
   }
 
   destroy() {
     super.destroy();
-    this._unbindWindow();
 
     this._targets.forEach((target) => {
       target.destroy();
@@ -103,18 +99,14 @@ export default class Router extends Observer {
     });
   }
 
-  changeState(change) {
-    const state = this._stringify();
+  changeState() {
+    const hash = '#' + this._stringify();
 
-    if (state === window.location.hash.substr(1)) {
+    if (hash === window.location.hash) {
       return;
     }
 
-    if (change === 'push') {
-      window.history.pushState(state, null, '#' + state);
-    } else if (change === 'replace') {
-      window.history.replaceState(state, null, '#' + state);
-    }
+    window.history.replaceState(null, null, hash);
 
     this._targets.forEach((target) => {
       if (target.current() !== null) {
@@ -124,30 +116,40 @@ export default class Router extends Observer {
     });
   }
 
-  _bindWindow() {
-    if (typeof window !== 'undefined') {
-      select(window).on('popstate.scola-router', () => this.popState());
-    }
-  }
-
-  _unbindWindow() {
-    if (typeof window !== 'undefined') {
-      select(window).on('popstate.scola-router', null);
-    }
-  }
-
   _set(setEvent) {
-    if (this._targets.has(setEvent.name) === false) {
+    const cancel =
+      setEvent.changed === false ||
+      this._targets.has(setEvent.name) === false;
+
+    if (cancel === true) {
       return;
     }
 
-    const [path, parameters = ''] = setEvent.value.split(':');
+    let value = setEvent.value;
 
-    this
-      .target(setEvent.name)
-      .route(path)
-      .parameters(parameters)
-      .go('push');
+    if (typeof value === 'string') {
+      value = {
+        path: value
+      };
+    }
+
+    value = Object.assign({
+      path: '',
+      parameters: '',
+      action: 'forward'
+    }, value);
+
+    const target = this.target(setEvent.name);
+
+    if (value.path === '' && value.action === 'backward') {
+      target.backward();
+      return;
+    }
+
+    target
+      .route(value.path)
+      .parameters(value.parameters)
+      .go(value.action);
   }
 
   _stringify() {
