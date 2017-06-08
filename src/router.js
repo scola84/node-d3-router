@@ -120,8 +120,9 @@ export default class Router extends Observer {
 
     this._targets.forEach((target) => {
       if (target.current() !== null) {
-        this._model.set(target.name(),
-          target.current().stringify(), false);
+        this._model.set(target.name(), {
+          path: target.current().stringify()
+        }, false);
       }
     });
   }
@@ -143,11 +144,19 @@ export default class Router extends Observer {
       };
     }
 
-    value = Object.assign({
-      path: '',
-      parameters: '',
-      action: 'forward'
-    }, value);
+    if (typeof value.parameters === 'undefined') {
+      const [
+        path,
+        parameters = ''
+      ] = value.path.split(':');
+
+      value.path = path;
+      value.parameters = parameters;
+    }
+
+    if (typeof value.action === 'undefined') {
+      value.action = 'forward';
+    }
 
     const target = this.target(setEvent.name);
 
