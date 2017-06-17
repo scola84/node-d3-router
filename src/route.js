@@ -1,3 +1,4 @@
+import { ScolaError } from '@scola/error';
 import series from 'async/series';
 import EventEmitter from 'events';
 
@@ -80,7 +81,7 @@ export default class Route extends EventEmitter {
     return this;
   }
 
-  element(value = null, destroy = () => {}) {
+  element(value = null) {
     if (value === null) {
       return this._element;
     }
@@ -93,8 +94,6 @@ export default class Route extends EventEmitter {
     if (this._element !== null) {
       return this;
     }
-
-    this.once('destroy', destroy);
 
     this._element = value;
     this._target.finish();
@@ -137,6 +136,10 @@ export default class Route extends EventEmitter {
     }
 
     return string;
+  }
+
+  error(message) {
+    return new ScolaError(message);
   }
 
   _parse(string = '') {
