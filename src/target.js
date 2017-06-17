@@ -147,10 +147,10 @@ export default class Target extends EventEmitter {
     if (push === true) {
       this._history.push(this._current);
     } else if (action === 'backward') {
-      this._previous = this._current;
-      this._current = this._history.pop();
+      this._history.pop();
     }
 
+    this._previous = this._current;
     this._current = route;
     this._action = action;
 
@@ -219,6 +219,11 @@ export default class Target extends EventEmitter {
       slider.append(element);
     }
 
+    if (this._previous) {
+      this._previous.emit('remove');
+    }
+
+    this._current.emit('append');
     slider.forward();
   }
 
@@ -228,6 +233,9 @@ export default class Target extends EventEmitter {
     if (slider.has(element) === false) {
       slider.prepend(element);
     }
+
+    this._previous.emit('remove');
+    this._current.emit('append');
 
     slider.backward(() => {
       this._previous.destroy();
