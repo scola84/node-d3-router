@@ -159,8 +159,12 @@ export default class Router extends Observer {
 
     const target = this.target(setEvent.name);
 
-    if (value.path === '' && value.action === 'backward') {
+    if (value.action === 'backward' && target.historic()) {
       target.backward();
+      return;
+    }
+
+    if (target.has(value.path) === false) {
       return;
     }
 

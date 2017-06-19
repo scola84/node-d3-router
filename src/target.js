@@ -34,6 +34,14 @@ export default class Target extends EventEmitter {
     return this._history;
   }
 
+  historic() {
+    return this._history.length > 0;
+  }
+
+  has(path) {
+    return this._routes.has(path);
+  }
+
   stringify() {
     return [
       this._current.stringify(),
@@ -86,7 +94,7 @@ export default class Target extends EventEmitter {
   }
 
   route(path) {
-    if (this._routes.has(path) === false) {
+    if (this.has(path) === false) {
       this._routes.set(path, new Route()
         .target(this)
         .path(path));
