@@ -64,6 +64,8 @@ export default class Route extends EventEmitter {
     }
 
     this.emit('parameters', this._parameters);
+    this._target.router().changeState();
+
     return this;
   }
 
