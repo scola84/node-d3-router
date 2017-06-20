@@ -255,7 +255,9 @@ export default class Target extends EventEmitter {
     this._element.slider().clear();
 
     this._history.forEach((route) => {
-      route.destroy();
+      if (route !== this._current) {
+        route.destroy();
+      }
     });
 
     this._history = [];
