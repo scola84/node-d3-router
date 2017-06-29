@@ -114,11 +114,15 @@ export default class Router extends Observer {
     window.history.replaceState(null, null, hash);
 
     this._targets.forEach((target) => {
-      if (target.current() !== null) {
-        this._model.set(target.name(), {
-          path: target.current().stringify()
-        }, false);
+      if (target.current() === null) {
+        this._model.unset(target.name());
+        return;
       }
+
+      this._model.set(target.name(), {
+        parameters: target.current().parameters(),
+        path: target.current().path()
+      }, false);
     });
   }
 
@@ -158,20 +162,23 @@ export default class Router extends Observer {
     }
 
     const target = this.target(setEvent.name);
+    let route = null;
 
-    if (value.action === 'backward' && target.historic()) {
-      target.backward();
+    if (value.action === 'backward') {
+      route = target.history(-1);
+    }
+
+    if (route === null && target.has(value.path) === true) {
+      route = target
+        .route(value.path)
+        .parameters(value.parameters);
+    }
+
+    if (route === null) {
       return;
     }
 
-    if (target.has(value.path) === false) {
-      return;
-    }
-
-    target
-      .route(value.path)
-      .parameters(value.parameters)
-      .go(value.action);
+    route.go(value.action);
   }
 
   _stringify() {
