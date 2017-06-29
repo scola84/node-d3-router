@@ -30,12 +30,12 @@ export default class Target extends EventEmitter {
     return this._current;
   }
 
-  history() {
-    return this._history;
-  }
+  history(value = null) {
+    if (value === null) {
+      return this._history;
+    }
 
-  historic() {
-    return this._history.length > 0;
+    return this._history[this._history.length + value] || null;
   }
 
   has(path) {
@@ -112,7 +112,7 @@ export default class Target extends EventEmitter {
     return this;
   }
 
-  element(value = null, destroy = () => {}) {
+  element(value = null) {
     if (value === null) {
       return this._element;
     }
@@ -126,20 +126,10 @@ export default class Target extends EventEmitter {
       return this;
     }
 
-    this.once('destroy', destroy);
-
     this._element = value;
     this._current.execute();
 
     return this;
-  }
-
-  backward() {
-    const route = this._history[this._history.length - 1];
-
-    if (route instanceof Route === true) {
-      route.go('backward');
-    }
   }
 
   prepare(route, action) {
@@ -198,9 +188,6 @@ export default class Target extends EventEmitter {
     }
 
     this._router.changeState();
-
-    this.emit('go', this._current);
-    this._current.emit('go', this._current);
   }
 
   popState(active = {}) {
