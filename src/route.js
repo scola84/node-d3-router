@@ -77,9 +77,17 @@ export default class Route extends EventEmitter {
     value = typeof value === 'string' ?
       this._parse(value) : value;
 
-    Object.assign(this._parameters, value);
+    Object.keys(value).forEach((name) => {
+      if (value[name] === false) {
+        delete this._parameters[name];
+      } else {
+        this._parameters[name] = value[name];
+      }
+    });
 
     this.emit('parameters', this._parameters);
+    this._target.router().changeState();
+
     return this;
   }
 
@@ -100,6 +108,7 @@ export default class Route extends EventEmitter {
     this._element = value;
     this._target.finish();
 
+    this.emit('parameters', this._parameters);
     return this;
   }
 
