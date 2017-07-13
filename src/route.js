@@ -153,6 +153,12 @@ export default class Route extends EventEmitter {
     return new ScolaError(message);
   }
 
+  user() {
+    return this._target
+      .router()
+      .user();
+  }
+
   _parse(string = '') {
     const parameters = {};
     const parts = string.length > 0 ? string.split('&') : [];

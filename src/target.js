@@ -1,3 +1,4 @@
+import { ScolaError } from '@scola/error';
 import series from 'async/series';
 import EventEmitter from 'events';
 import Route from './route';
@@ -205,6 +206,14 @@ export default class Target extends EventEmitter {
     }
 
     this.destroy();
+  }
+
+  error(message) {
+    return new ScolaError(message);
+  }
+
+  user() {
+    return this._router.user();
   }
 
   _forward(element) {
