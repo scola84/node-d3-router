@@ -16,7 +16,14 @@ export default class Route extends EventEmitter {
 
   destroy() {
     this._element = null;
+
+    this.emit('remove');
     this.emit('destroy');
+
+    this.removeAllListeners('append');
+    this.removeAllListeners('parameters');
+    this.removeAllListeners('remove');
+    this.removeAllListeners('destroy');
   }
 
   target(value = null) {
@@ -105,10 +112,11 @@ export default class Route extends EventEmitter {
       return this;
     }
 
+    this.emit('parameters', this._parameters);
+
     this._element = value;
     this._target.finish();
 
-    this.emit('parameters', this._parameters);
     return this;
   }
 

@@ -238,7 +238,6 @@ export default class Target extends EventEmitter {
       slider.prepend(element);
     }
 
-    this._previous.emit('remove');
     this._current.emit('append');
 
     slider.backward(() => {
