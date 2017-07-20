@@ -15,15 +15,14 @@ export default class Route extends EventEmitter {
   }
 
   destroy() {
+    if (this._element === null) {
+      return;
+    }
+
     this._element = null;
 
     this.emit('remove');
     this.emit('destroy');
-
-    this.removeAllListeners('append');
-    this.removeAllListeners('parameters');
-    this.removeAllListeners('remove');
-    this.removeAllListeners('destroy');
   }
 
   target(value = null) {
@@ -70,8 +69,13 @@ export default class Route extends EventEmitter {
       this._parameters[name] = value;
     }
 
-    this.emit('parameters', this._parameters);
-    this._target.router().changeState();
+    if (this._element !== null) {
+      this.emit('parameters', this._parameters);
+    }
+
+    this._target
+      .router()
+      .changeState();
 
     return this;
   }
@@ -92,8 +96,13 @@ export default class Route extends EventEmitter {
       }
     });
 
-    this.emit('parameters', this._parameters);
-    this._target.router().changeState();
+    if (this._element !== null) {
+      this.emit('parameters', this._parameters);
+    }
+
+    this._target
+      .router()
+      .changeState();
 
     return this;
   }
@@ -111,8 +120,6 @@ export default class Route extends EventEmitter {
     if (this._element !== null) {
       return this;
     }
-
-    this.emit('parameters', this._parameters);
 
     this._element = value;
     this._target.finish();
