@@ -188,6 +188,9 @@ export default class Target extends EventEmitter {
       this._backward(this._current.element());
     }
 
+    this._current.emit('parameters',
+      this._current.parameters());
+
     this._router.changeState();
   }
 
