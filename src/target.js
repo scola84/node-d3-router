@@ -259,5 +259,6 @@ export default class Target extends EventEmitter {
     });
 
     this._history = [];
+    this._previous = null;
   }
 }
