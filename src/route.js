@@ -10,8 +10,9 @@ export default class Route extends EventEmitter {
     this._path = null;
     this._handlers = [];
 
-    this._parameters = {};
+    this._append = false;
     this._element = null;
+    this._parameters = {};
   }
 
   destroy() {
@@ -19,10 +20,28 @@ export default class Route extends EventEmitter {
       return;
     }
 
+    this._parameters = {};
     this._element = null;
 
-    this.emit('remove');
+    if (this._append === true) {
+      this.remove();
+    }
+
     this.emit('destroy');
+  }
+
+  append() {
+    this._append = true;
+    this.emit('append');
+
+    return this;
+  }
+
+  remove() {
+    this._append = false;
+    this.emit('remove');
+
+    return this;
   }
 
   target(value = null) {
