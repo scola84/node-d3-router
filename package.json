@@ -10,7 +10,6 @@
   "dependencies": {
     "@scola/d3-model": "^4.0.0",
     "@scola/error": "^5.1.0",
-    "async": "^2.5.0",
-    "d3": "^4.10.0"
+    "async": "^2.5.0"
   }
 }
